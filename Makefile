@@ -1,11 +1,39 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -g $$(curl-config --cflags)
 LFLAGS=$$(curl-config --libs)
-LIBS=find_course_codes.c
+
+SRC_DIR=src
+SRC_FILES=$(wildcard $(SRC_DIR)/*.c)
+OBJ_DIR=objs
+OBJ_FILES=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
+DEPS_DIR=include
+DEPS_FILES=$(wildcard $(DEPS_DIR)/*.h)
+BIN=bin
 
 TARGET=scraper
 
-all : $(TARGET)
+TARGET_FILES=$(patsubst %,$(BIN)/%,$(TARGET))
 
-% : %.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+.PHONY: clean default
+
+default : $(TARGET_FILES)
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c $(DEPS_FILES)
+	mkdir -p $(OBJ_DIR)/
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BIN)/% : $(OBJ_FILES)
+	mkdir -p $(BIN)/
+	$(CC) -o $@ $^ $(LFLAGS)
+	
+# $(TARGET) : $(OBJ_FILES)
+# 	mkdir -p $(BIN)/
+# 	$(CC) -o $(BIN)/$@ $^ $(LFLAGS)
+
+# % : %.c $(LIBS)
+# 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+
+clean : 
+	-rm -rf $(OBJ_DIR)/
+	-rm -rf $(BIN)/
